@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "security": {
+    "hmacSecret": "TROQUE_POR_UMA_CHAVE_LONGA_E_ALEATORIA"
+  },
+  "defaults": {
+    "voucherItemId": "Jvips_Voucher",
+    "consumeOnUse": true
+  },
+  "messages": {
+    "prefix": "[JVIP] ",
+    "receivedVoucher": "Voce recebeu um voucher do VIP {vipDisplay}.",
+    "inventoryFull": "Seu inventario esta cheio. O voucher foi dropado no chao.",
+    "activated": "VIP {vipDisplay} ativado por {durationHuman}.",
+    "alreadyHasVip": "Voce ja possui um VIP ativo ({activeVipDisplay}) ate {activeVipExpiresAt}.",
+    "invalidVoucher": "Este voucher e invalido.",
+    "alreadyUsedVoucher": "Este voucher ja foi utilizado.",
+    "notYourVoucher": "Este voucher esta vinculado a outro jogador e nao pode ser utilizado por voce."
+  },
+  "vips": {
+    "thorium": {
+      "displayName": "[THORIUM]",
+      "durationSeconds": 2592000,
+      "voucher": {
+        "itemId": "Jvips_Voucher",
+        "name": "[THORIUM] Voucher #{voucherIdShort}",
+        "lore": [
+          "Ativa: [THORIUM]",
+          "Duracao: {durationHuman}",
+          "Vinculado: {player}",
+          "Clique direito para ativar"
+        ]
+      },
+      "commandsOnActivate": [
+        "say [JVIPS] Você ativou seu Vip Thorium.",
+        "lp user {player} parent add thorium",
+        "lp user {player} parent switchprimarygroup thorium"
+      ],
+      "commandsOnExpire": [
+        "say [JVIPS] Seu Vip Thorium expirou.",
+        "lp user {player} parent switchprimarygroup default",
+        "lp user {player} parent remove thorium"
+      ]
+    },
+    "cobalt": {
+      "displayName": "[COBALT]",
+      "durationSeconds": 2592000,
+      "voucher": {
+        "itemId": "Jvips_Voucher",
+        "name": "[COBALT] Voucher #{voucherIdShort}",
+        "lore": [
+          "Ativa: [COBALT]",
+          "Duracao: {durationHuman}",
+          "Vinculado: {player}",
+          "Clique direito para ativar"
+        ]
+      },
+      "commandsOnActivate": [
+        "say [JVIPS] Você ativou seu Vip Cobalt.",
+        "lp user {player} parent switchprimarygroup cobalt"
+      ],
+      "commandsOnExpire": [
+        "say [JVIPS] Seu Vip Cobalt expirou.",
+        "lp user {player} parent switchprimarygroup default",
+        "lp user {player} parent remove cobalt"
+      ]
+    },
+    "adamantite": {
+      "displayName": "[ADAMANTITE]",
+      "durationSeconds": 2592000,
+      "voucher": {
+        "itemId": "Jvips_Voucher",
+        "name": "[ADAMANTITE] Voucher #{voucherIdShort}",
+        "lore": [
+          "Ativa: [ADAMANTITE]",
+          "Duracao: {durationHuman}",
+          "Vinculado: {player}",
+          "Clique direito para ativar"
+        ]
+      },
+      "commandsOnActivate": [
+        "say [JVIPS] Você ativou seu Vip Adamantite.",
+        "lp user {player} parent switchprimarygroup adamantite"
+      ],
+      "commandsOnExpire": [
+        "say [JVIPS] Seu Vip Adamantite expirou.",
+        "lp user {player} parent switchprimarygroup default",
+        "lp user {player} parent remove adamantite"
+      ]
+    }
+  }
+}

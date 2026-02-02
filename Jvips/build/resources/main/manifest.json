@@ -1,0 +1,22 @@
+{
+  "Group": "JPlugins",
+  "Name": "JVips",
+  "Version": "1.0.0",
+  "Description": "VIP vouchers with commands on activate/expire.",
+  "Authors": [
+    {
+      "Name": "Julio",
+      "Email": "gorgueirajc@gmail.com",
+      "Url": ""
+    }
+  ],
+  "Website": "",
+  "Main": "br.com.julio.jvips.plugin.JvipsPlugin",
+  "ServerVersion": "*",
+  "Dependencies": {},
+  "OptionalDependencies": {},
+  "DisabledByDefault": false,
+  "IncludesAssetPack": true,
+  "SubPlugins": []
+}
+
