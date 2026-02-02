@@ -1,0 +1,20 @@
+{
+  "Id": "Jvips_Voucher",
+  "Icon": "Icons/ItemsGenerated/jvips_voucher.png",
+  "Model": "Items/Jvips_Voucher/jvips_voucher.blockymodel",
+  "Texture": "Items/Jvips_Voucher/jvips_voucher.png",
+  "Rarity": "Common",
+  "MaxStack": 1,
+  "TranslationProperties": {
+    "Name": "Voucher VIP",
+    "Description": "Clique com o botão direito para ativar."
+  },
+  "Interactions": {
+    "Secondary": {
+      "Interactions": [
+        { "Type": "jvips_voucher_interaction" }
+      ]
+    }
+  }
+}
+
