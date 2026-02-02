@@ -32,6 +32,7 @@ Defines VIPs, duration, voucher appearance, and commands.
 
 Example:
 
+```json
 "thorium": {
   "displayName": "[THORIUM]",
   "durationSeconds": 86400,
@@ -45,6 +46,7 @@ Example:
     "lp user {player} parent remove thorium"
   ]
 }
+```
 
 🧾 Commands
 Command	Description	Permission
