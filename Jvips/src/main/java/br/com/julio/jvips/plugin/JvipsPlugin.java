@@ -151,6 +151,28 @@ public final class JvipsPlugin extends JavaPlugin {
             getLogger().at(Level.SEVERE).withCause(e).log("[Jvips] Falha ao criar %s.", fileName);
         }
     }
+    public boolean reloadJvipsConfig() {
+        try {
+            Path dataFolder = getDataDirectory();
+
+            VipConfig config = VipConfigLoader.loadFromPath(dataFolder.resolve("vips.json"));
+
+            PlayersStore playersStore = new PlayersStore(dataFolder.resolve("players.json"));
+            VouchersStore vouchersStore = new VouchersStore(dataFolder.resolve("vouchers.json"));
+
+            VoucherService voucherService = new VoucherService(config, playersStore, vouchersStore);
+            VipExpiryService expiryService = new VipExpiryService(config, playersStore);
+            VipCommandService vipCommandService = new VipCommandService(this::dispatchCommandAsConsole);
+
+            this.core = new JvipsCoreFacade(config, voucherService, expiryService, vipCommandService);
+
+            getLogger().at(java.util.logging.Level.INFO).log("[Jvips] Reload OK.");
+            return true;
+        } catch (Throwable t) {
+            getLogger().at(java.util.logging.Level.SEVERE).withCause(t).log("[Jvips] Reload FAIL.");
+            return false;
+        }
+    }
 
     @Override
     protected void start() {

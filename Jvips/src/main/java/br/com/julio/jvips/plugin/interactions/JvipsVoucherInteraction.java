@@ -135,6 +135,7 @@ public final class JvipsVoucherInteraction extends SimpleInstantInteraction {
             // ✅ NOVA ASSINATURA: agora passa o nome também (lastKnownName)
             VoucherService.ActivationResult ar = svc.activateVoucher(payload, playerUuid, playerName);
 
+
             if (ar.blockedByExistingVip()) {
                 player.sendMessage(Message.raw("Você já tem um VIP ativo. Aguarde expirar para ativar outro."));
                 interactionContext.getState().state = InteractionState.Failed;

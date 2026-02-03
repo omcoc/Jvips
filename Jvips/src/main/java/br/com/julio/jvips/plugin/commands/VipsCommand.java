@@ -18,11 +18,20 @@ public final class VipsCommand extends AbstractCommand {
 
         // subcomandos
         addSubCommand(new VipsGiveKeyCommand(plugin));
+        addSubCommand(new VipsReloadCommand(plugin));
+        addSubCommand(new VipsAddCommand(plugin));
+        addSubCommand(new VipsRemoveCommand(plugin));
     }
 
     @Override
     protected CompletableFuture<Void> execute(CommandContext ctx) {
-        ctx.sendMessage(Message.raw("Uso: /vips givekey <vipId> <player>"));
+        ctx.sendMessage(Message.raw(
+                "JVIPS Commands:\n" +
+                        "/vips givekey <vipId> <player|uuid>\n" +
+                        "/vips add <player|uuid> <vipId>\n" +
+                        "/vips remove <player|uuid> <vipId|*>\n" +
+                        "/vips reload"
+        ));
         return CompletableFuture.completedFuture(null);
     }
 }

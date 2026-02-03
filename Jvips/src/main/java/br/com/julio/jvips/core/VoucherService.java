@@ -28,7 +28,8 @@ public final class VoucherService {
 
     /** Gera payload + assinatura (HMAC) para um voucher amarrado ao jogador */
     public GeneratedVoucher generateVoucher(String vipId, String issuedToPlayerUuid) {
-        VipDefinition vip = config.getVipOrThrow(vipId);
+        // valida vip existe
+        config.getVipOrThrow(vipId);
 
         String voucherId = UUID.randomUUID().toString();
         long issuedAt = Instant.now().getEpochSecond();
@@ -80,7 +81,7 @@ public final class VoucherService {
         return ValidationResult.success();
     }
 
-    /** Aplica o VIP se não houver outro ativo (regra: 1 VIP por vez) */
+    /** Aplica o VIP via voucher se não houver outro ativo (regra: 1 VIP por vez) */
     public ActivationResult activateVoucher(
             VoucherPayload payload,
             String activatingPlayerUuid,
@@ -96,7 +97,6 @@ public final class VoucherService {
         }
 
         VipDefinition vip = config.getVipOrThrow(payload.getVipId());
-
         long expiresAt = now + vip.getDurationSeconds();
 
         // fallback seguro pro lastKnownName
@@ -119,13 +119,122 @@ public final class VoucherService {
         // marca voucher como usado
         Map<String, VoucherRecord> vouchers = vouchersStore.load();
         VoucherRecord record = vouchers.get(payload.getVoucherId());
-        record.setUsedAt(now);
-        record.setUsedBy(activatingPlayerUuid);
-        vouchers.put(payload.getVoucherId(), record);
-        vouchersStore.save(vouchers);
+        if (record != null) {
+            record.setUsedAt(now);
+            record.setUsedBy(activatingPlayerUuid);
+            vouchers.put(payload.getVoucherId(), record);
+            vouchersStore.save(vouchers);
+        }
 
         return ActivationResult.activated(vip, newState);
     }
+
+    // =========================================================
+    // ✅ ADMIN METHODS (para /vips add e /vips remove)
+    // =========================================================
+
+    /**
+     * Admin adiciona VIP direto (sem voucher). Respeita regra: 1 VIP por vez.
+     * Retorna ActivationResult (mesma estrutura do fluxo normal) para você reutilizar mensagens/logs.
+     *
+     * Observação: você pode passar playerName depois se quiser.
+     */
+    public ActivationResult adminAddVip(String vipId, String targetPlayerUuid) {
+        return adminAddVip(vipId, targetPlayerUuid, targetPlayerUuid);
+    }
+
+    /**
+     * Versão com nome (pra preencher lastKnownName corretamente).
+     */
+    public ActivationResult adminAddVip(String vipId, String targetPlayerUuid, String targetPlayerName) {
+        long now = Instant.now().getEpochSecond();
+
+        // valida vip existe
+        VipDefinition vip = config.getVipOrThrow(vipId);
+
+        Map<String, PlayerVipState> players = playersStore.load();
+        PlayerVipState current = players.get(targetPlayerUuid);
+
+        // se já tem VIP ativo, bloqueia
+        if (current != null && current.hasActiveVip(now)) {
+            return ActivationResult.blockedAlreadyHasVip(current);
+        }
+
+        long expiresAt = now + vip.getDurationSeconds();
+
+        String lastKnownName = (targetPlayerName == null || targetPlayerName.trim().isEmpty())
+                ? targetPlayerUuid
+                : targetPlayerName.trim();
+
+        PlayerVipState newState = new PlayerVipState(
+                vip.getId(),
+                now,
+                expiresAt,
+                lastKnownName
+        );
+
+        players = new HashMap<>(players);
+        players.put(targetPlayerUuid, newState);
+        playersStore.save(players);
+
+        return ActivationResult.activated(vip, newState);
+    }
+
+    /**
+     * Admin remove VIP do jogador (se o vipId bater com o ativo).
+     * Retorna true se removeu, false se não havia/batia.
+     */
+    public boolean adminRemoveVip(String vipId, String targetPlayerUuid) {
+        Map<String, PlayerVipState> players = playersStore.load();
+        PlayerVipState st = players.get(targetPlayerUuid);
+        if (st == null) return false;
+
+        String active = st.getActiveVipId();
+        if (active == null || active.isEmpty()) return false;
+
+        // se vipId foi fornecido e não bate, não remove
+        if (vipId != null && !vipId.isBlank() && !active.equalsIgnoreCase(vipId.trim())) {
+            return false;
+        }
+
+        // remove o estado inteiro (1 vip por vez)
+        players = new HashMap<>(players);
+        players.remove(targetPlayerUuid);
+        playersStore.save(players);
+
+        return true;
+    }
+
+    /**
+     * Só para o VipsRemoveCommand conseguir pegar o VipDefinition certo
+     * (para rodar commandsOnExpire manualmente quando remover via admin).
+     *
+     * Retorna o VipDefinition SE (a) o jogador tem vip ativo e (b) vipId bate.
+     */
+    public VipDefinition peekActiveVipDefinition(String targetPlayerUuid, String vipId) {
+        long now = Instant.now().getEpochSecond();
+
+        Map<String, PlayerVipState> players = playersStore.load();
+        PlayerVipState st = players.get(targetPlayerUuid);
+        if (st == null) return null;
+
+        if (!st.hasActiveVip(now)) return null;
+
+        String active = st.getActiveVipId();
+        if (active == null || active.isEmpty()) return null;
+
+        if (vipId != null && !vipId.isBlank() && !active.equalsIgnoreCase(vipId.trim())) {
+            return null;
+        }
+
+        try {
+            return config.getVipOrThrow(active);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    // =========================================================
 
     private String sign(VoucherPayload payload) {
         return HmacSigner.hmacSha256Hex(
