@@ -138,11 +138,17 @@ Example VIP configuration
 }
 ```
 Available placeholders
+
 Placeholder	Description
+
 {player}	Player name (or UUID fallback)
+
 {vipId}	VIP identifier
+
 {durationHuman}	Human-readable duration
+
 {voucherIdShort}	Short voucher ID
+
 ⏱️ Automatic VIP Expiration
 
 JVIPS includes an internal tick-based system that:
