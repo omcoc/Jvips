@@ -1,218 +1,224 @@
-# Jvips
-JVIPS — VIP System with Vouchers for Hytale
+JVIPS – Voucher-based VIP System for Hytale
 
-JVIPS is a complete VIP management system for Hytale servers, based on secure vouchers, automatic expiration, and server-side command execution.
+JVIPS is a flexible and secure VIP management system for Hytale servers, based on vouchers, cryptographic signatures, and automatic expiration handling.
 
-It allows server owners to sell, distribute, or reward VIP access safely, with full integration to permission plugins such as LuckPerms.
+It allows server administrators to grant VIP access using in-game items (vouchers), execute commands on activation/expiration, and manage VIPs manually through admin commands — all without restarting the server.
 
 ✨ Features
 
-🎟️ VIP Vouchers bound to a specific player (UUID)
+🎟️ Voucher-based VIP activation
 
-🔐 HMAC signature validation (anti-forgery)
+🔐 Secure vouchers (HMAC-signed, player-bound)
 
-⏳ Automatic VIP expiration
+⏱️ Automatic VIP expiration (tick-based)
 
-⚙️ Configurable commands on activation and expiration
+⚙️ Commands on activate / expire
 
-🧠 Sequential command execution (order guaranteed)
+🛠️ Admin commands to add/remove VIPs
 
-🧾 Persistent storage (players.json, vouchers.json)
+🔄 Live config reload (no restart required)
 
-📦 Embedded Asset Pack support
+📦 Embedded asset pack (items + interactions)
 
-🛑 Prevents voucher drop abuse
+🧾 JSON-based configuration
 
-🧩 Modular & extensible architecture
+🧠 Last known player name tracking (safe even if name changes)
 
-📁 Configuration Files
+📦 How It Works
+
+An admin gives a VIP voucher to a player.
+
+The voucher item is bound to the player UUID and cryptographically signed.
+
+The player right-clicks the voucher to activate the VIP.
+
+JVIPS:
+
+Validates the voucher
+
+Applies the VIP
+
+Executes configured commands
+
+Starts tracking expiration
+
+When the VIP expires:
+
+The VIP is removed automatically
+
+Expiration commands are executed
+
+🧑‍💼 Commands
+Player / Staff Commands
+/vips givekey <vipId> <player>
+
+Gives a VIP voucher to a player.
+
+Requires the player to be online
+
+The voucher is bound to the target player
+
+Permission:
+jvips.admin
+
+Admin Commands
+/vips add <player> <vipId>
+
+Adds a VIP directly to a player without using a voucher.
+
+Respects the rule: only one active VIP per player
+
+Uses the VIP duration defined in vips.json
+
+Triggers commandsOnActivate
+
+Permission:
+jvips.admin
+
+/vips remove <player> <vipId>
+
+Removes an active VIP from a player.
+
+Only removes if the specified VIP matches the active one
+
+Triggers commandsOnExpire
+
+Permission:
+jvips.admin
+
+/vips reload
+
+Reloads all JVIPS configuration files without restarting the server.
+
+Reloaded files:
+
 vips.json
 
-Defines VIPs, duration, voucher appearance, and commands.
+players.json
 
-Example:
+vouchers.json
+
+Permission:
+jvips.admin
+
+🔑 Permissions
+Permission	Description
+jvips.use	Allows players to activate VIP vouchers
+jvips.admin	Full administrative access to JVIPS
+⚙️ Configuration (vips.json)
+
+Each VIP is fully configurable.
+
+Example VIP configuration
 
 ```json
 "thorium": {
   "displayName": "[THORIUM]",
   "durationSeconds": 86400,
+  "voucher": {
+    "itemId": "Jvips_Voucher",
+    "name": "[THORIUM] Voucher #{voucherIdShort}",
+    "lore": [
+      "Activates: [THORIUM]",
+      "Duration: {durationHuman}",
+      "Bound to: {player}",
+      "Right-click to activate"
+    ]
+  },
   "commandsOnActivate": [
-    "say [JVIPS] VIP Thorium activated!",
+    "say [JVIPS] You activated the Thorium VIP.",
+    "lp user {player} parent add thorium",
     "lp user {player} parent switchprimarygroup thorium"
   ],
   "commandsOnExpire": [
-    "say [JVIPS] VIP Thorium expired.",
+    "say [JVIPS] Your Thorium VIP has expired.",
     "lp user {player} parent switchprimarygroup default",
     "lp user {player} parent remove thorium"
   ]
 }
 ```
+Available placeholders
+Placeholder	Description
+{player}	Player name (or UUID fallback)
+{vipId}	VIP identifier
+{durationHuman}	Human-readable duration
+{voucherIdShort}	Short voucher ID
+⏱️ Automatic VIP Expiration
 
-🧾 Commands
-Command	Description	Permission
-/vips give <player> <vip>	Gives a VIP voucher	jvips.admin
-/vips reload	Reloads configuration	jvips.admin
-🔐 Permissions
-Permission	Description
-jvips.use	Allows using VIP vouchers
-jvips.admin	Allows admin commands
-⏱️ VIP Expiration
+JVIPS includes an internal tick-based system that:
 
-VIPs expire automatically via a ticking system
+Checks for expired VIPs every few seconds
 
-Expired VIPs:
+Automatically removes expired VIPs
 
-Are removed from players.json
+Executes commandsOnExpire in the correct order
 
-Execute commandsOnExpire
+No cron jobs, no schedulers, no external dependencies.
 
-No player login required
+🔐 Security & Anti-Abuse
 
-🧩 Dependencies
+Vouchers are HMAC-signed
 
-LuckPerms (recommended)
+Vouchers are bound to a specific player UUID
 
-Hytale Server API
+Used vouchers are tracked and cannot be reused
 
-📦 Installation
+Admin actions bypass vouchers but still respect VIP rules
 
-Drop JVIPS.jar into /mods
+📁 Data Storage
 
-(Optional) Restart server to ensure asset pack load
+JVIPS stores data in its plugin directory:
 
-Configure vips.json
+vips.json – VIP definitions and commands
 
-Start server 🎉
+players.json – Active VIP states (UUID-based)
 
-📜 License
+vouchers.json – Issued and used vouchers
 
-MIT License
+Player UUIDs are used internally.
+Player name changes are handled safely via lastKnownName.
 
-📦 Release Notes — v1.0.0
-🎉 Initial Release
+📦 Asset Pack
 
-Core
+JVIPS embeds its asset pack directly inside the plugin JAR.
 
-Secure voucher system with HMAC validation
+No manual installation required
 
-Player-bound vouchers (UUID)
+Items and interactions are automatically available
 
-Persistent VIP storage
+Compatible with standard Hytale asset loading
 
-Commands
+🧪 Compatibility
 
-Configurable commands on activation
+Designed for Hytale server builds with:
 
-Configurable commands on expiration
+CommandManager
 
-Guaranteed execution order
+Interaction system
 
-Automation
+ECS ticking systems
 
-Automatic VIP expiration
+Tested with LuckPerms for permission/group handling
 
-Background ticking system
+❤️ Credits
 
-Assets
+Developed by Julio (JVIPS)
+With a strong focus on:
 
-Embedded asset pack support
+Clean architecture
 
-Custom voucher items
+Server safety
 
-Security
+Administrative flexibility
 
-Voucher replay protection
+If you want, next steps I can help you with:
 
-Drop-blocking for VIP vouchers
+📦 Release notes (first public release)
 
-🧪 Pre-Release Checklist
-Functional
+🧪 Final pre-publish checklist
 
-✅ Voucher activates VIP
+🔒 Advanced hardening ideas
 
-✅ Commands run in correct order
+🌍 Localization support
 
-✅ VIP expires after duration
-
-✅ Expire commands execute
-
-✅ Voucher consumed only on success
-
-Persistence
-
-✅ players.json updates correctly
-
-✅ vouchers.json marks vouchers as used
-
-✅ Server restart keeps VIP state
-
-Security
-
-✅ Voucher cannot be reused
-
-✅ Voucher bound to UUID
-
-✅ No activation without permission
-
-Integration
-
-✅ LuckPerms commands work
-
-✅ Console dispatch confirmed
-
-✅ Asset pack loads
-
-🔒 Hardening & Anti-Abuse (Recommended)
-✅ Already Implemented (Excellent)
-
-HMAC signature on vouchers
-
-UUID-bound vouchers
-
-Server-side validation only
-
-Sequential command execution
-
-Drop-blocking system
-
-🔐 Optional Improvements (Future)
-
-Cooldown per player for activation attempts
-
-Max active vouchers per player
-
-Optional IP logging (admin-only)
-
-Optional admin audit log (vip-activations.log)
-
-Optional delayMs support per command
-
-🚫 What NOT to do
-
-❌ Never trust client-side data
-
-❌ Never allow commands from metadata
-
-❌ Never allow voucher activation without validation
-
-🏁 Final Words
-
-JVIPS is production-ready.
-
-You’ve built:
-
-a safe system
-
-with clean architecture
-
-extensible design
-
-and real-world reliability
-
-When you’re ready:
-
-🚀 CurseForge publishing
-
-🔄 Update system
-
-🧩 Add-ons (shops, APIs, webhooks)
+📈 Future roadmap (VIP stacking, extensions, UI, etc.)
