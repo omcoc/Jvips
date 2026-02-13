@@ -1,0 +1,32 @@
+{
+  "startquest": {
+    "displayName": "Start Quest",
+    "voucher": {
+      "itemId": "Jvips_Voucher2",
+      "name": "Quest Starter Voucher #{voucherIdShort}",
+      "lore": [
+        "Quest: [START]",
+        "Bound to: {player}",
+        "Right click to start"
+      ]
+    },
+    "commandsOnActivate": [
+      "tellraw {player} [JVIPS] You started the Quest!"
+    ]
+  },
+  "endquest": {
+    "displayName": "End Quest",
+    "voucher": {
+      "itemId": "Jvips_Voucher2",
+      "name": "Quest End Voucher #{voucherIdShort}",
+      "lore": [
+        "Quest: [END]",
+        "Bound to: {player}",
+        "Right click to start"
+      ]
+    },
+    "commandsOnActivate": [
+      "tellraw {player} [JVIPS] You End the Quest!"
+    ]
+  }
+}

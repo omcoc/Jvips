@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "language": "pt_BR",
+  "vipExpiry": {
+    "sweepEverySeconds": 10
+  },
+  "vipBroadcast": {
+    "enabled": true,
+    "cooldownSeconds": 30
+  },
+  "formatting": {
+    "dateFormat": "dd/MM/yyyy",
+    "hourFormat": "24h",
+    "timezone": "America/Sao_Paulo"
+  },
+  "listSettings": {
+    "entriesPerPage": 5
+  },
+  "logging": {
+    "debug": false
+  }
+}
+

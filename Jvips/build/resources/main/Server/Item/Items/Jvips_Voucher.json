@@ -1,20 +1,26 @@
 {
   "Id": "Jvips_Voucher",
-  "Icon": "Icons/ItemsGenerated/jvips_voucher.png",
-  "Model": "Items/Jvips_Voucher/jvips_voucher.blockymodel",
-  "Texture": "Items/Jvips_Voucher/jvips_voucher.png",
-  "Rarity": "Common",
+  "PlayerAnimationsId": "Item",
+  "Icon": "Icons/ItemsGenerated/Jvips_Voucher.png",
+  "Model": "Items/Jvips_Voucher/Jvips_Voucher.blockymodel",
+  "Texture": "Items/Jvips_Voucher/Jvips_Voucher.png",
+  "Quality": "Legendary",
   "MaxStack": 1,
   "TranslationProperties": {
-    "Name": "Voucher VIP",
-    "Description": "Clique com o botão direito para ativar."
+    "Name": "server.items.Jvips_Voucher.name",
+    "Description": "server.items.Jvips_Voucher.description"
   },
+  "Categories": [
+    "Items.Recipes"
+  ],
   "Interactions": {
     "Secondary": {
       "Interactions": [
-        { "Type": "jvips_voucher_interaction" }
+        {
+          "Type": "jvips_voucher_interaction"
+        }
       ]
     }
-  }
+  },
+  "ItemLevel": 20
 }
-

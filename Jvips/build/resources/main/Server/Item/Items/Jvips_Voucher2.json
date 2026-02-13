@@ -1,0 +1,26 @@
+{
+  "Id": "Jvips_Voucher2",
+  "PlayerAnimationsId": "Item",
+  "Icon": "Icons/ItemsGenerated/Jvips_Voucher2.png",
+  "Model": "Items/Jvips_Voucher/Jvips_Voucher2.blockymodel",
+  "Texture": "Items/Jvips_Voucher/Jvips_Voucher2.png",
+  "Quality": "Legendary",
+  "MaxStack": 1,
+  "TranslationProperties": {
+    "Name": "server.items.Jvips_Voucher2.name",
+    "Description": "server.items.Jvips_Voucher2.description"
+  },
+  "Categories": [
+    "Items.Recipes"
+  ],
+  "Interactions": {
+    "Secondary": {
+      "Interactions": [
+        {
+          "Type": "jvips_voucher_interaction"
+        }
+      ]
+    }
+  },
+  "ItemLevel": 20
+}
