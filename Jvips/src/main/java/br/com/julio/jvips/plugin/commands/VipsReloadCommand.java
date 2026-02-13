@@ -20,8 +20,8 @@ public final class VipsReloadCommand extends CommandBase {
     @Override
     protected void executeSync(CommandContext ctx) {
         boolean ok = plugin.reloadJvipsConfig();
-        ctx.sendMessage(Message.raw(ok
-                ? "JVIPS: vips.json recarregado com sucesso."
-                : "JVIPS: Falha ao recarregar vips.json (veja o console)."));
+        ctx.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(ok
+                ? plugin.getMessages().format("admin.reload.ok", null)
+                : plugin.getMessages().format("admin.reload.fail", null)));
     }
 }

@@ -9,6 +9,12 @@ public final class VipDefinition {
     private String displayName;         // ex: "[THORIUM]"
     private long durationSeconds;       // ex: 2592000
 
+    /** Se true, permite usar mais vouchers do mesmo tipo para estender o tempo. */
+    private boolean stackable = false;
+
+    /** Máximo de stacks permitidos. 0 = ilimitado. */
+    private int stackAmount = 0;
+
     private VoucherSpec voucher = new VoucherSpec();
     private List<String> commandsOnActivate = new ArrayList<>();
     private List<String> commandsOnExpire = new ArrayList<>();
@@ -29,6 +35,12 @@ public final class VipDefinition {
 
     public long getDurationSeconds() { return durationSeconds; }
     public void setDurationSeconds(long durationSeconds) { this.durationSeconds = durationSeconds; }
+
+    public boolean isStackable() { return stackable; }
+    public void setStackable(boolean stackable) { this.stackable = stackable; }
+
+    public int getStackAmount() { return stackAmount; }
+    public void setStackAmount(int stackAmount) { this.stackAmount = stackAmount; }
 
     public VoucherSpec getVoucher() { return voucher; }
     public void setVoucher(VoucherSpec voucher) { this.voucher = voucher; }

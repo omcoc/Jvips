@@ -1,7 +1,9 @@
 package br.com.julio.jvips.plugin.commands;
 
 import br.com.julio.jvips.core.VoucherService;
+import br.com.julio.jvips.core.items.VoucherItemFactory;
 import br.com.julio.jvips.core.model.VipDefinition;
+import br.com.julio.jvips.core.util.DurationParser;
 import br.com.julio.jvips.plugin.JvipsPlugin;
 
 import com.hypixel.hytale.component.Ref;
@@ -9,6 +11,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
+import com.hypixel.hytale.server.core.command.system.arguments.system.OptionalArg;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
 import com.hypixel.hytale.server.core.entity.entities.Player;
@@ -18,145 +21,136 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-import org.bson.BsonDocument;
-import org.bson.BsonInt64;
-import org.bson.BsonString;
-
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
+/**
+ * /vips givekey <vip> <player> [--duration tempo]
+ *
+ * Exemplos:
+ *   /vips givekey thorium __om__                    → duração padrão do vips.json
+ *   /vips givekey thorium __om__ --duration 1d2h10m → 1 dia, 2 horas, 10 minutos
+ *   /vips givekey thorium __om__ --duration 2h5s    → 2 horas e 5 segundos
+ *   /vips givekey thorium __om__ --duration 10m     → 10 minutos
+ */
 public final class VipsGiveKeyCommand extends CommandBase {
 
     private final JvipsPlugin plugin;
 
     private final RequiredArg<String> vipIdArg;
     private final RequiredArg<PlayerRef> playerArg;
+    private final OptionalArg<String> durationArg;
 
     public VipsGiveKeyCommand(JvipsPlugin plugin) {
-        super("givekey", "Entrega um voucher (key) de VIP para um jogador.");
+        super("givekey", "Delivers a VIP voucher to a player. Optional: custom duration (e.g. 1d2h10m5s).");
         this.plugin = plugin;
 
-        // Somente staff/admin
         requirePermission("jvips.admin");
 
         this.vipIdArg = withRequiredArg("vipId", "Id do VIP (ex: thorium)", ArgTypes.STRING);
         this.playerArg = withRequiredArg("player", "Jogador alvo", ArgTypes.PLAYER_REF);
+        this.durationArg = withOptionalArg("duration", "Custom duration (ex: 1d2h10m5s, 30d, 2h30m)", ArgTypes.STRING);
     }
 
     @Override
     protected void executeSync(CommandContext ctx) {
-        String vipId = vipIdArg.get(ctx);
-        PlayerRef targetRef = playerArg.get(ctx);
+        final String vipId = vipIdArg.get(ctx);
+        final PlayerRef targetRef = playerArg.get(ctx);
 
-        // 1) valida VIP existe
-        VipDefinition vipDef;
+        final VipDefinition vipDef;
         try {
             vipDef = plugin.getCore().getConfig().getVipOrThrow(vipId);
         } catch (Exception e) {
-            ctx.sendMessage(Message.raw("VIP inválido: " + vipId));
+            java.util.Map<String, String> vars = new java.util.HashMap<>();
+            vars.put("vipId", vipId);
+            ctx.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(plugin.getMessages().format("error.invalidVip", vars)));
             return;
         }
 
-        // 2) valida player reference (precisa estar em um mundo válido)
-        Ref<EntityStore> ref = targetRef.getReference();
+        // ===== Parse de tempo custom do argumento opcional (--duration 1d2h10m5s) =====
+        long customDurationSeconds = 0;
+        if (durationArg.provided(ctx)) {
+            String durationInput = durationArg.get(ctx);
+            if (durationInput != null && !durationInput.trim().isEmpty()) {
+                long parsed = DurationParser.parse(durationInput.trim());
+                if (parsed > 0) {
+                    customDurationSeconds = parsed;
+                } else {
+                    java.util.Map<String, String> vars = new java.util.HashMap<>();
+                    vars.put("input", durationInput);
+                    ctx.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(
+                            plugin.getMessages().format("error.invalidDuration", vars)));
+                    return;
+                }
+            }
+        }
+
+        final Ref<EntityStore> ref = targetRef.getReference();
         if (ref == null || !ref.isValid()) {
-            ctx.sendMessage(Message.raw("O jogador não está em um mundo válido agora (precisa estar online/in-game)."));
+            ctx.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(plugin.getMessages().format("error.playerMustBeOnline", null)));
             return;
         }
 
-        Store<EntityStore> store = ref.getStore();
-        World world = ((EntityStore) store.getExternalData()).getWorld();
+        final Store<EntityStore> store = ref.getStore();
+        final World world = ((EntityStore) store.getExternalData()).getWorld();
 
-        UUID targetUuid = targetRef.getUuid();
-        String targetUuidStr = targetUuid.toString();
+        final UUID targetUuid = targetRef.getUuid();
+        final String targetUuidStr = targetUuid.toString();
+        final String targetName = targetRef.getUsername();
 
-        // 3) gera voucher no CORE (seu método real)
-        VoucherService.GeneratedVoucher issued = plugin.getCore()
-                .getVoucherService()
-                .generateVoucher(vipId, targetUuidStr);
+        final VoucherService.GeneratedVoucher issued =
+                plugin.getCore().getVoucherService().generateVoucher(vipId, targetUuidStr, customDurationSeconds);
 
-        // 4) resolve itemId do voucher (do JSON / VipDefinition)
-        String itemId = null;
-        if (vipDef.getVoucher() != null) {
-            itemId = vipDef.getVoucher().getItemId();
-        }
-        if (itemId == null || itemId.isBlank()) {
-            itemId = "Jvips_Voucher"; // fallback seguro
-        }
-        final String finalItemId = itemId;
-        // 5) entrega no thread do world
+        final String itemId = (vipDef.getVoucher() != null && vipDef.getVoucher().getItemId() != null
+                && !vipDef.getVoucher().getItemId().trim().isEmpty())
+                ? vipDef.getVoucher().getItemId().trim()
+                : "Jvips_Voucher";
+
+        final long finalCustomDuration = customDurationSeconds;
+
         world.execute(() -> {
             Player player = store.getComponent(ref, Player.getComponentType());
-            if (player == null) {
-                ctx.sendMessage(Message.raw("Falha ao localizar o Player componente do alvo."));
-                return;
-            }
+            if (player == null) return;
 
-            ItemStack voucherItem = buildVoucherItem(
-                    finalItemId,
-                    issued.payload().getVipId(),
+            ItemStack voucherItem = VoucherItemFactory.create(
+                    itemId,
+                    vipDef,
+                    targetName,
                     issued.payload().getIssuedTo(),
                     issued.payload().getVoucherId(),
                     issued.payload().getIssuedAt(),
-                    issued.signature()
+                    issued.signature(),
+                    finalCustomDuration
             );
 
-            // Hotbar first (mesmo padrão do core do Hytale)
             ItemStackTransaction tx = player.getInventory()
                     .getCombinedHotbarFirst()
                     .addItemStack(voucherItem);
 
-            ItemStack rem = tx.getRemainder();
-            boolean ok = (rem == null || rem.isEmpty());
-
-            if (!ok) {
-                // Aqui ainda não dropamos no chão (vamos implementar com entidade de item no próximo passo).
-                ctx.sendMessage(Message.raw("Inventário do jogador cheio. Voucher NÃO foi entregue."));
-                targetRef.sendMessage(Message.raw("Seu inventário está cheio. Libere espaço para receber o voucher."));
+            if (tx.getRemainder() != null && !tx.getRemainder().isEmpty()) {
+                ctx.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(plugin.getMessages().format("error.inventoryFull", null)));
+                targetRef.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(plugin.getMessages().format("error.inventoryFull", null)));
                 return;
             }
 
-            ctx.sendMessage(Message.raw("Voucher do VIP '" + vipId + "' entregue para " + targetRef.getUsername() + "."));
-            targetRef.sendMessage(Message.raw("Você recebeu um voucher de VIP: " + vipId + ". Clique direito para ativar."));
+            long effectiveDuration = finalCustomDuration > 0 ? finalCustomDuration : vipDef.getDurationSeconds();
+
+            java.util.Map<String, String> adminVars = new java.util.HashMap<>();
+            adminVars.put("vipId", vipId);
+            adminVars.put("player", targetName);
+            adminVars.put("duration", br.com.julio.jvips.core.util.DurationFormatter.format(effectiveDuration));
+            ctx.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(plugin.getMessages().format("admin.givekey.ok", adminVars)));
+
+            java.util.Map<String, String> vars = new java.util.HashMap<>();
+            vars.put("vip", vipId);
+            vars.put("duration", br.com.julio.jvips.core.util.DurationFormatter.format(effectiveDuration));
+            vars.put("player", targetName);
+            vars.put("vipDisplay", (vipDef.getDisplayName() != null && !vipDef.getDisplayName().isEmpty()) ? vipDef.getDisplayName() : vipId);
+
+            String msg = plugin.getMessages().format("voucher.received", vars);
+            targetRef.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(msg));
         });
-    }
-
-    private static ItemStack buildVoucherItem(
-            String itemId,
-            String vipId,
-            String issuedToUuid,
-            String voucherId,
-            long issuedAt,
-            String signature
-    ) {
-        BsonDocument meta = new BsonDocument();
-
-        // =============================
-        // METADATA FUNCIONAL (lógica)
-        // =============================
-        meta.append("jvips:type", new BsonString("vip_voucher"));
-        meta.append("jvips:vipId", new BsonString(vipId));
-        meta.append("jvips:issuedTo", new BsonString(issuedToUuid));
-        meta.append("jvips:voucherId", new BsonString(voucherId));
-        meta.append("jvips:issuedAt", new BsonInt64(issuedAt));
-        meta.append("jvips:sig", new BsonString(signature));
-
-        // =============================
-        // METADATA VISUAL (UI / TOOLTIP)
-        // =============================
-
-        // Nome do item (override visual)
-        meta.append("display_name", new BsonString("§6Voucher VIP §f(" + vipId + ")"));
-
-        // Lore (linhas)
-        meta.append("lore", new org.bson.BsonArray(java.util.List.of(
-                new BsonString("§7Ativa o VIP §e" + vipId),
-                new BsonString("§7Clique com o botão direito"),
-                new BsonString(""),
-                new BsonString("§8Vinculado ao jogador"),
-                new BsonString("§8ID: " + voucherId.substring(0, 8))
-        )));
-
-        return new ItemStack(itemId, 1, meta);
     }
 
 }

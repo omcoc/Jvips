@@ -19,8 +19,10 @@
   },
   "vips": {
     "thorium": {
-      "displayName": "[THORIUM]",
+      "displayName": "<#02421A><bold>[<gradient:#02421A:#58FF86:#02421A>THORIUM</gradient>]</bold></#02421A>",
       "durationSeconds": 2592000,
+      "stackable": true,
+      "stackAmount": 3,
       "voucher": {
         "itemId": "Jvips_Voucher",
         "name": "[THORIUM] Voucher #{voucherIdShort}",

@@ -1,5 +1,7 @@
 package br.com.julio.jvips.plugin.systems;
 
+import br.com.julio.jvips.plugin.JvipsServices;
+
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Store;
@@ -21,6 +23,7 @@ public final class VoucherDropBlockSystem extends EntityEventSystem<EntityStore,
 
     private static final String META_TYPE = "jvips:type";
     private static final String TYPE_VIP_VOUCHER = "vip_voucher";
+    private static final String TYPE_COMMAND_VOUCHER = "command_voucher";
 
     public VoucherDropBlockSystem() {
         super(DropItemEvent.PlayerRequest.class);
@@ -54,7 +57,10 @@ public final class VoucherDropBlockSystem extends EntityEventSystem<EntityStore,
 
         if (isVipVoucher(stack)) {
             event.setCancelled(true);
-            player.sendMessage(Message.raw("Você não pode dropar este voucher."));
+            var plugin = JvipsServices.getPlugin();
+            if (plugin != null) {
+                player.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(plugin.getMessages().format("error.cantDropVoucher", null)));
+            }
         }
     }
 
@@ -66,6 +72,7 @@ public final class VoucherDropBlockSystem extends EntityEventSystem<EntityStore,
         BsonValue v = meta.get(META_TYPE);
         if (v == null || !v.isString()) return false;
 
-        return TYPE_VIP_VOUCHER.equals(v.asString().getValue());
+        return TYPE_VIP_VOUCHER.equals(v.asString().getValue())
+                || TYPE_COMMAND_VOUCHER.equals(v.asString().getValue());
     }
 }

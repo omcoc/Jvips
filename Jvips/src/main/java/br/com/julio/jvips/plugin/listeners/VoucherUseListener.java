@@ -18,6 +18,8 @@ import org.bson.BsonValue;
 
 import java.util.UUID;
 
+import br.com.julio.jvips.plugin.util.VipBroadcastManager;
+
 public final class VoucherUseListener {
 
     private static final String META_TYPE = "jvips:type";
@@ -28,6 +30,7 @@ public final class VoucherUseListener {
     private static final String META_ISSUED_AT = "jvips:issuedAt";
 
     private static final String TYPE_VIP_VOUCHER = "vip_voucher";
+    private static final String TYPE_COMMAND_VOUCHER = "command_voucher";
 
     private final JvipsPlugin plugin;
 
@@ -48,7 +51,9 @@ public final class VoucherUseListener {
         // 2) permissão para usar VIP (você libera via permissões do servidor)
         if (!player.hasPermission("jvips.use")) {
             event.setCancelled(true);
-            player.sendMessage(Message.raw("Você não tem permissão para ativar VIP (jvips.use)."));
+            java.util.Map<String, String> vars = new java.util.HashMap<>();
+            vars.put("perm", "jvips.use");
+            player.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(plugin.getMessages().format("error.noPermissionUse", vars)));
             return;
         }
 
@@ -64,7 +69,7 @@ public final class VoucherUseListener {
 
         VoucherData data = readVoucherData(inHand);
         if (data == null) {
-            player.sendMessage(Message.raw("Voucher inválido."));
+            player.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(plugin.getMessages().format("error.invalidVoucher", null)));
             return;
         }
 
@@ -73,7 +78,7 @@ public final class VoucherUseListener {
 
         String playerUuid = getPlayerUuid(player);
         if (playerUuid == null) {
-            player.sendMessage(Message.raw("Falha ao identificar seu jogador."));
+            player.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(plugin.getMessages().format("error.playerResolveFailed", null)));
             return;
         }
 
@@ -89,7 +94,7 @@ public final class VoucherUseListener {
         VoucherService.ValidationResult vr = svc.validateVoucher(payload, data.signature, playerUuid);
         if (!vr.ok()) {
             // voucher permanece intacto
-            player.sendMessage(Message.raw(msgForKey(vr.errorKey())));
+            player.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(msgForKey(vr.errorKey())));
             return;
         }
 
@@ -98,23 +103,43 @@ public final class VoucherUseListener {
 
         if (ar.blockedByExistingVip()) {
             // manter voucher intacto
-            player.sendMessage(Message.raw("Você já tem um VIP ativo. Aguarde expirar para ativar outro."));
+            player.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(plugin.getMessages().format("error.alreadyHasVip", null)));
             return;
         }
 
         if (!ar.activated()) {
             // fallback, mantém item
-            player.sendMessage(Message.raw("Não foi possível ativar o VIP agora."));
+            player.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(plugin.getMessages().format("error.activationFailed", null)));
             return;
         }
 
         // 6) consumimos 1 item somente após ativar com sucesso
         consumeOneFromActiveHotbar(player);
 
-        // 7) feedback + executar comandos onActivate
+        // Gravar no history.json
         VipDefinition vip = ar.vip();
-        String vipName = (vip != null && vip.getDisplayName() != null) ? vip.getDisplayName() : payload.getVipId();
-        player.sendMessage(Message.raw("VIP ativado: " + vipName));
+        if (vip != null && ar.newState() != null) {
+            br.com.julio.jvips.plugin.util.HistoryRecorder.recordActivation(
+                    playerUuid, vip,
+                    ar.newState().getActivatedAt(), ar.newState().getExpiresAt()
+            );
+        }
+
+        // 7) feedback + executar comandos onActivate
+        String vipName = (vip != null && vip.getDisplayName() != null && !vip.getDisplayName().isEmpty())
+                ? vip.getDisplayName()
+                : payload.getVipId();
+        java.util.Map<String, String> vars = new java.util.HashMap<>();
+        vars.put("vipDisplay", vipName);
+        player.sendMessage(br.com.julio.jvips.core.text.JvipsTextParser.parseToMessage(plugin.getMessages().format("player.vipActivated", vars)));
+
+        // Broadcast na tela (Event Title) ao ativar VIP (com cooldown global e apenas para ativações via voucher)
+        VipBroadcastManager.tryBroadcastVipActivated(
+                plugin,
+                VipBroadcastManager.ActivationSource.VOUCHER,
+                playerName,
+                vipName
+        );
 
         if (vip != null) {
             plugin.getCore().getCommandService().runActivateCommands(vip, playerName);
@@ -128,7 +153,8 @@ public final class VoucherUseListener {
         BsonValue v = meta.get(META_TYPE);
         if (v == null || !v.isString()) return false;
 
-        return TYPE_VIP_VOUCHER.equals(v.asString().getValue());
+        String type = v.asString().getValue();
+        return TYPE_VIP_VOUCHER.equals(type) || TYPE_COMMAND_VOUCHER.equals(type);
     }
 
     private VoucherData readVoucherData(ItemStack stack) {
@@ -205,12 +231,14 @@ public final class VoucherUseListener {
     }
 
     private String msgForKey(String key) {
-        if (key == null) return "Voucher inválido.";
+        if (key == null) {
+            return plugin.getMessages().format("error.invalidVoucher", null);
+        }
         return switch (key) {
-            case "invalidVoucher" -> "Voucher inválido.";
-            case "notYourVoucher" -> "Este voucher não é seu.";
-            case "alreadyUsedVoucher" -> "Este voucher já foi usado.";
-            default -> "Não foi possível ativar o voucher (" + key + ").";
+            case "invalidVoucher" -> plugin.getMessages().format("error.invalidVoucher", null);
+            case "notYourVoucher" -> plugin.getMessages().format("error.notYourVoucher", null);
+            case "alreadyUsedVoucher" -> plugin.getMessages().format("error.alreadyUsedVoucher", null);
+            default -> plugin.getMessages().format("error.activationFailed", null);
         };
     }
 
