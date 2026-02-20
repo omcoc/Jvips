@@ -1,32 +1,25 @@
-{
-  "startquest": {
-    "displayName": "Start Quest",
+﻿{
+  "hunterquest": {
+    "displayName": "Hunter Quest",
     "voucher": {
-      "itemId": "Jvips_Voucher2",
-      "name": "Quest Starter Voucher #{voucherIdShort}",
+      "itemId": "Jvips_Voucher",
+      "name": "Quest Hunt Voucher #{voucherIdShort}",
       "lore": [
-        "Quest: [START]",
+        "Quest: [HUNTER]",
         "Bound to: {player}",
         "Right click to start"
       ]
     },
     "commandsOnActivate": [
-      "tellraw {player} [JVIPS] You started the Quest!"
-    ]
-  },
-  "endquest": {
-    "displayName": "End Quest",
-    "voucher": {
-      "itemId": "Jvips_Voucher2",
-      "name": "Quest End Voucher #{voucherIdShort}",
-      "lore": [
-        "Quest: [END]",
-        "Bound to: {player}",
-        "Right click to start"
-      ]
-    },
-    "commandsOnActivate": [
-      "tellraw {player} [JVIPS] You End the Quest!"
+      {
+        "command": "tp {player} hunterquest",
+        "player_side": false
+      },
+      {
+        "command": "tellraw {player} [JVIPS] You started the Hunter Quest adventure!",
+        "player_side": false
+      }
     ]
   }
 }
+

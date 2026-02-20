@@ -1,0 +1,136 @@
+$C = "Common.ui";
+
+$C.@PageOverlay {}
+
+$C.@DecoratedContainer {
+  Anchor: (Width: 700, Height: 480);
+
+  #Title {
+    Group {
+      $C.@Title #WindowTitle {
+        @Text = "JVIPS MENU";
+      }
+    }
+  }
+
+  #Content {
+    LayoutMode: Left;
+    Padding: (Full: 8);
+
+    // Left sidebar
+    Group #LeftSidebar {
+      Anchor: (Width: 130);
+      LayoutMode: Top;
+      Padding: (Full: 4);
+
+      $C.@SecondaryTextButton #BtnStatus {
+        @Text = "STATUS";
+        @Anchor = Anchor(Top: 4);
+      }
+
+      $C.@SecondaryTextButton #BtnHistory {
+        @Text = "HISTORY";
+        @Anchor = Anchor(Top: 4);
+      }
+    }
+
+    // Center info panel
+    Group #CenterArea {
+      FlexWeight: 1;
+      LayoutMode: Top;
+      Padding: (Full: 8);
+
+      Group #InfoPanel {
+        Background: (TexturePath: "Common/ContainerPatch.png", Border: 23);
+        FlexWeight: 1;
+        LayoutMode: Top;
+        Padding: (Full: 15);
+
+        Label #InfoTitle {
+          Style: (FontSize: 18, TextColor: #b4c8c9, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, FontName: "Secondary");
+          Anchor: (Height: 30);
+          Text: "VIP STATUS";
+        }
+
+        $C.@ContentSeparator {
+          @Anchor = Anchor(Top: 4, Bottom: 4);
+        }
+
+        Group {
+          Anchor: (Height: 24, Top: 6);
+          LayoutMode: Left;
+          Label {
+            Style: (FontSize: 14, TextColor: #96a9be);
+            Anchor: (Width: 130);
+            Text: "VIP Ativo:";
+          }
+          Label #InfoVipName {
+            Style: (FontSize: 14, TextColor: #bfcdd5, RenderBold: true);
+            Text: "Nenhum";
+          }
+        }
+
+        Group {
+          Anchor: (Height: 24, Top: 4);
+          LayoutMode: Left;
+          Label {
+            Style: (FontSize: 14, TextColor: #96a9be);
+            Anchor: (Width: 130);
+            Text: "Tempo:";
+          }
+          Label #InfoTimeRemaining {
+            Style: (FontSize: 14, TextColor: #bfcdd5, RenderBold: true);
+            Text: "--";
+          }
+        }
+
+        Group {
+          Anchor: (Height: 24, Top: 4);
+          LayoutMode: Left;
+          Label {
+            Style: (FontSize: 14, TextColor: #96a9be);
+            Anchor: (Width: 130);
+            Text: "Stacks:";
+          }
+          Label #InfoStacks {
+            Style: (FontSize: 14, TextColor: #bfcdd5, RenderBold: true);
+            Text: "--";
+          }
+        }
+
+        Group {
+          Anchor: (Height: 24, Top: 4);
+          LayoutMode: Left;
+          Label {
+            Style: (FontSize: 14, TextColor: #96a9be);
+            Anchor: (Width: 130);
+            Text: "Chest:";
+          }
+          Label #InfoChest {
+            Style: (FontSize: 14, TextColor: #bfcdd5, RenderBold: true);
+            Text: "--";
+          }
+        }
+      }
+    }
+
+    // Right sidebar
+    Group #RightSidebar {
+      Anchor: (Width: 130);
+      LayoutMode: Top;
+      Padding: (Full: 4);
+
+      $C.@SecondaryTextButton #BtnChest {
+        @Text = "CHEST";
+        @Anchor = Anchor(Top: 4);
+      }
+
+      $C.@TertiaryTextButton #BtnKit {
+        @Text = "KIT";
+        @Anchor = Anchor(Top: 4);
+      }
+    }
+  }
+}
+
+$C.@BackButton {}

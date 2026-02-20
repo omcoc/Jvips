@@ -1,0 +1,19 @@
+{
+  "display": {
+    "dailyItemId": "Furniture_Crude_Chest_Small",
+    "weeklyItemId": "Furniture_Tavern_Chest_Small",
+    "monthlyItemId": "Furniture_Dungeon_Chest_Epic"
+  },
+  "vips": {
+    "thorium": {
+      "dailyCommand": "kit thoriumdiario {player}",
+      "weeklyCommand": "kit thoriumsemanal {player}",
+      "monthlyCommand": "kit thoriummensal {player}"
+    },
+    "cobalt": {
+      "dailyCommand": "kit cobaltdiario {player}",
+      "weeklyCommand": "kit cobaltsemanal {player}",
+      "monthlyCommand": "kit cobaltmensal {player}"
+    }
+  }
+}

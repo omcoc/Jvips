@@ -1,4 +1,4 @@
-{
+﻿{
   "version": 1,
   "security": {
     "hmacSecret": "TROQUE_POR_UMA_CHAVE_LONGA_E_ALEATORIA"
@@ -21,8 +21,6 @@
     "thorium": {
       "displayName": "<#02421A><bold>[<gradient:#02421A:#58FF86:#02421A>THORIUM</gradient>]</bold></#02421A>",
       "durationSeconds": 2592000,
-      "stackable": true,
-      "stackAmount": 3,
       "voucher": {
         "itemId": "Jvips_Voucher",
         "name": "[THORIUM] Voucher #{voucherIdShort}",
@@ -34,7 +32,7 @@
         ]
       },
       "commandsOnActivate": [
-        "say [JVIPS] Você ativou seu Vip Thorium.",
+        "say [JVIPS] Voce ativou seu Vip Thorium.",
         "lp user {player} parent add thorium",
         "lp user {player} parent switchprimarygroup thorium"
       ],
@@ -58,7 +56,7 @@
         ]
       },
       "commandsOnActivate": [
-        "say [JVIPS] Você ativou seu Vip Cobalt.",
+        "say [JVIPS] Voce ativou seu Vip Cobalt.",
         "lp user {player} parent switchprimarygroup cobalt"
       ],
       "commandsOnExpire": [
@@ -81,7 +79,7 @@
         ]
       },
       "commandsOnActivate": [
-        "say [JVIPS] Você ativou seu Vip Adamantite.",
+        "say [JVIPS] Voce ativou seu Vip Adamantite.",
         "lp user {player} parent switchprimarygroup adamantite"
       ],
       "commandsOnExpire": [
@@ -92,3 +90,4 @@
     }
   }
 }
+

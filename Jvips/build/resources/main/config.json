@@ -8,6 +8,10 @@
     "enabled": true,
     "cooldownSeconds": 30
   },
+  "vipStack": {
+    "enabled": true,
+    "maxStack": 3
+  },
   "formatting": {
     "dateFormat": "dd/MM/yyyy",
     "hourFormat": "24h",
@@ -16,8 +20,12 @@
   "listSettings": {
     "entriesPerPage": 5
   },
+  "ui": {
+    "skinDynamicEnabled": false,
+    "skinMode": "head", //head ou buddy
+    "skinHeadResolution": 128
+  },
   "logging": {
     "debug": false
   }
 }
-
