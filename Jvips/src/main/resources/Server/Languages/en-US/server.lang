@@ -1,4 +1,0 @@
-items.Jvips_Voucher.name = [TMP] VIP Voucher
-items.Jvips_Voucher.description = [TMP] To use your <item is="Jvips_Voucher"/>:\n\n<color is="#00ff00"><b><u>Right Click.</u></b></color>\n\n <color is="#ff0000"><b>Information:</b></color>\n\n• <color is="#ffffff">Voucher attached to your UUID</color>\n• <color is="#ffffff">Not dropable </color>\n\nVIP Type: <color is="#ffffff">see lore in chat</color>\nDuration: <color is="#ffffff">see lore in chat</color>
-items.Jvips_Voucher2.name = [TMP]  Voucher
-items.Jvips_Voucher2.description = [TMP] To use your <item is="Jvips_Voucher2"/>:\n\n<color is="#00ff00"><b><u>Right Click.</u></b></color>\n\n <color is="#ff0000"><b>Information:</b></color>\n\n• <color is="#ffffff">Voucher attached to your UUID</color>\n• <color is="#ffffff">Not dropable </color>\n\nVIP Type: <color is="#ffffff">see lore in chat</color>
